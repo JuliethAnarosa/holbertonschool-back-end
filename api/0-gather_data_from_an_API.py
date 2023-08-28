@@ -1,50 +1,37 @@
 #!/usr/bin/python3
-"""
-    Method to given employee ID,
-    returns information about his/her TODO list progress
-"""
+''' Return information about his/her TODO list progress from an REST API '''
 from requests import get
 from sys import argv
 
 
-def information_employee():
-    """
-       returns information about employees
-    """
-    id_employee = int(argv[1])
-    id_employee = int(argv[1])
-    employee_name = ""
-    number_of_done_task = 0
-    total_number_of_task = 0
-    task_title = []
+def get_api():
+    ''' Gather data from an API '''
+    emp_id = int(argv[1])
+    emp_name = ''
+    tasks_done = 0
+    tasks_total = 0
+    tasks_titles = []
 
-    url_users = 'https://jsonplaceholder.typicode.com/users'
-    url_todos = 'https://jsonplaceholder.typicode.com/todos'
+    users_res = get('https://jsonplaceholder.typicode.com/users').json()
+    for user in users_res:
+        if user['id'] == emp_id:
+            emp_name = user['name']
+            break
 
-    response_one = get(url_users)
-    response_two = get(url_todos)
+    tasks_res = get('https://jsonplaceholder.typicode.com/todos').json()
+    for task in tasks_res:
+        if task['userId'] == emp_id:
+            if task['completed']:
+                tasks_titles.append(task['title'])
+                tasks_done += 1
+            tasks_total += 1
 
-    if response_one.status_code == 200:
-        response_json_usr = response_one.json()
-        response_json_tod = response_two.json()
-
-        for user in response_json_usr:
-            if (user['id'] == id_employee):
-                employee_name = user['name']
-
-                for tod in response_json_tod:
-                    if tod['userId'] == id_employee:
-                        total_number_of_task += 1
-                        if tod['completed'] is True:
-                            number_of_done_task += 1
-                            task_title.append(tod['title'])
-
-        print('Employee {} is done with tasks({}/{}):'
-              .format(employee_name, number_of_done_task,
-                      total_number_of_task))
-        for title in task_title:
-            print('\t {}'.format(title))
+    print('Employee {} is done with tasks({}/{}):'.format(emp_name,
+                                                          tasks_done,
+                                                          tasks_total))
+    for title in tasks_titles:
+        print('\t {}'.format(title))
 
 
-if __name__ == "__main__":
-    information_employee()
+if __name__ == '__main__':
+    get_api()
